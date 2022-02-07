@@ -68,8 +68,8 @@ library
   hs-source-dirs:
     library
   exposed-modules:
-    Init
     Init.Prelude
+    Init.Utils
 
 executable bootstrap-sample
   hs-source-dirs:
@@ -85,9 +85,6 @@ test-suite bootstrap-sample-tests
     TestCommon
   build-depends:
       tasty
-    , tasty-hedgehog
-    , tasty-hunit
-    , tasty-th
 
 benchmark bootstrap-sample-benchmarks
   type: exitcode-stdio-1.0
