@@ -4,8 +4,8 @@ version:        0.0.0.1
 synopsis:       Synopsis
 description:    Description.
 category:       System
-homepage:       https://github.com/haskell-nix/hnix#readme
-bug-reports:    https://github.com/haskell-nix/hnix/issues
+homepage:       https://github.com/Anton-Latukha/haskell-bootstrap-sample#readme
+bug-reports:    https://github.com/Anton-Latukha/haskell-bootstrap-sample/issues
 author:         Anton Latukha
 maintainer:     anton@latukha.com
 license:        MIT
@@ -51,8 +51,8 @@ common shared
     , BangPatterns
     , ViewPatterns
   build-depends:
-      base >= 4.12 && < 4.16
-    , relude  
+      base >= 4.12 && < 4.17
+    , relude >= 1.0.0 && < 1.1.0
   ghc-options:
     -Wall
     -fprint-potential-instances
@@ -65,87 +65,32 @@ common shared
       -fspecialise-aggressively
 
 library
-  exposed-modules:
-    Nix
-    Nix.Prelude
-  other-modules:
-    Paths_hnix
-  autogen-modules:
-    Paths_hnix
   hs-source-dirs:
-    src
+    library
+  exposed-modules:
+    Init
+    Init.Prelude
 
 executable bootstrap-sample
   hs-source-dirs:
-    main
+    executable
   main-is: Main.hs
-  other-modules:
-    Repl
-    Paths_hnix
-  autogen-modules:
-    Paths_hnix
-  build-depends:
-    , base
-    , containers
-    , relude
 
-test-suite hnix-tests
-  type: exitcode-stdio-1.0
+test-suite bootstrap-sample-tests
+  hs-source-dirs:
+    test-suite
   main-is: Main.hs
   other-modules:
-    EvalTests
-    NixLanguageTests
-    ParserTests
-    PrettyParseTests
-    PrettyTests
-    ReduceExprTests
     TestCommon
-  hs-source-dirs:
-    tests
   build-depends:
-      Diff
-    , Glob
-    , base
-    , containers
-    , data-fix
-    , directory
-    , exceptions
-    , filepath
-    , hedgehog
-    , hnix
-    , megaparsec
-    , neat-interpolation
-    , optparse-applicative
-    , pretty-show
-    , prettyprinter
-    , process
-    , relude
-    , split
-    , tasty
+      tasty
     , tasty-hedgehog
     , tasty-hunit
     , tasty-th
-    , serialise
-    , template-haskell
-    , time
-    , unix-compat
 
-benchmark hnix-benchmarks
-  type: exitcode-stdio-1.0
+benchmark bootstrap-sample-benchmarks
+  hs-source-dirs:
+    benchmark
   main-is: Main.hs
   other-modules:
     ParserBench
-  hs-source-dirs:
-    benchmarks
-  build-depends:
-      base
-    , criterion
-    , data-fix
-    , exceptions
-    , filepath
-    , hnix
-    , optparse-applicative
-    , relude
-    , serialise
-    , template-haskell
-    , time
