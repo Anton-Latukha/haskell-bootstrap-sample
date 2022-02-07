@@ -1,2 +1,2 @@
-# haskell-bootstrap-sample
+# bootstrap-sample
 Initial setup to bootstrap projects
