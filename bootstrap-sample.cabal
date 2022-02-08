@@ -81,6 +81,8 @@ executable bootstrap-sample
   hs-source-dirs:
     executable
   main-is: Main.hs
+  build-depends:
+      bootstrap-sample
 
 test-suite bootstrap-sample-tests
   import: shared
