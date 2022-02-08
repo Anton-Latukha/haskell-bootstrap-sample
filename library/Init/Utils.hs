@@ -9,11 +9,9 @@ module Init.Utils
   , dup
   , both
   , mapPair
-  , iterateN
   , nestM
   , applyAll
   , traverse2
-  , lifted
 
   , whenTrue
   , whenFalse
@@ -21,7 +19,6 @@ module Init.Utils
   , isPresent
   , handlePresence
   , whenText
-  , free
 
   , Path(..)
   , isAbsolute
@@ -38,20 +35,12 @@ module Init.Utils
   , replaceExtension
   , readFile
 
-  , Alg
-  , Transform
-  , TransformF
-  , loebM
-  , adi
-
-  , Has(..)
-  , askLocal
-
-  , KeyMap
-
+#if ENABLE_TRACING
+  , module X
+#else
   , trace
   , traceM
-  , module X
+#endif
   )
  where
 
@@ -64,26 +53,10 @@ import           Relude                  hiding ( pass
                                                 , traceM
                                                 )
 
-import           Data.Binary                    ( Binary )
 import           Data.Data                      ( Data )
-import           Codec.Serialise                ( Serialise )
-import           Control.Monad.Fix              ( MonadFix(..) )
-import           Control.Monad.Free             ( Free(..) )
-import           Control.Monad.Trans.Control    ( MonadTransControl(..) )
-import qualified Data.Aeson                    as A
-import           Data.Fix                       ( Fix(..) )
 import qualified Data.Text                     as Text
-import           Lens.Family2                  as X
-                                                ( view
-                                                , over
-                                                , LensLike'
-                                                , Lens'
-                                                )
-import           Lens.Family2.Stock             ( _1
-                                                , _2
-                                                )
-import qualified System.FilePath              as FilePath
-import Control.Monad.List (foldM)
+import qualified System.FilePath               as FilePath
+import           Control.Monad.List             ( foldM )
 
 #if ENABLE_TRACING
 import qualified Relude.Debug                 as X
@@ -131,16 +104,6 @@ mapPair :: (a -> c, b -> d) -> (a,b) -> (c,d)
 mapPair ~(f,g) ~(a,b) = (f a, g b)
 {-# inline mapPair #-}
 
-iterateN
-  :: forall a
-   . Int -- ^ Recursively apply 'Int' times
-  -> (a -> a) -- ^ the function
-  -> a -- ^ starting from argument
-  -> a
-iterateN n f x =
-  -- It is hard to read - yes. It is a non-recursive momoized action - yes.
-  fix ((<*> (0 /=)) . ((bool x . f) .) . (. pred)) n
-
 nestM
   :: Monad m
   => Int -- ^ Recursively apply 'Int' times
@@ -149,7 +112,7 @@ nestM
   -> m a -- ^ & join layers of 'm'
 nestM 0 _ x = pure x
 nestM n f x =
-  foldM (const . f) x $ replicate @() n mempty -- fuses. But also, can it be fix join?
+  foldM (const . f) x $ replicate @() n mempty
 {-# inline nestM #-}
 
 -- | In `foldr` order apply functions.
@@ -167,16 +130,6 @@ traverse2
   -> t a -- ^ on every element in 'Traversable'
   -> m (n (t b)) -- ^ collect the results.
 traverse2 f x = sequenceA <$> traverse f x
-
---  2021-08-21: NOTE: Someone needs to put in normal words, what this does.
--- This function is pretty spefic & used only once, in "Nix.Normal".
-lifted
-  :: (MonadTransControl u, Monad (u m), Monad m)
-  => ((a -> m (StT u b)) -> m (StT u b))
-  -> (a -> u m b)
-  -> u m b
-lifted f k =
-  restoreT . pure =<< liftWith (\run -> f (run . k))
 
 
 -- * Eliminators
@@ -228,14 +181,6 @@ whenText e f t =
     (f t)
     (not $ Text.null t)
 
--- | Lambda analog of @maybe@ or @either@ for Free monad.
-free :: (a -> b) -> (f (Free f a) -> b) -> Free f a -> b
-free fP fF fr =
-  case fr of
-    Pure a -> fP a
-    Free fa -> fF fa
-{-# inline free #-}
-
 
 -- * Path
 
@@ -243,7 +188,7 @@ free fP fF fr =
 newtype Path = Path FilePath
   deriving
     ( Eq, Ord, Generic
-    , Typeable, Data, NFData, Serialise, Binary, A.ToJSON, A.FromJSON
+    , Typeable, Data
     , Show, Read, Hashable
     , Semigroup, Monoid
     )
@@ -310,65 +255,3 @@ replaceExtension = coerce FilePath.replaceExtension
 -- | 'Path's 'FilePath.readFile'.
 readFile :: MonadIO m => Path -> m Text
 readFile = readFileText . coerce
-
-
--- * Recursion scheme
-
--- | F-algebra defines how to reduce the fixed-point of a functor to a value.
--- > type Alg f a = f a -> a
-type Alg f a = f a -> a
-
--- | Do according transformation.
---
--- It is a transformation of a recursion scheme.
--- See @TransformF@.
-type Transform f a = TransformF (Fix f) a
--- | Do according transformation.
---
--- It is a transformation between functors.
-type TransformF f a = (f -> a) -> f -> a
-
-loebM :: (MonadFix m, Traversable t) => t (t a -> m a) -> m (t a)
-loebM f = mfix $ \a -> (`traverse` f) ($ a)
-{-# inline loebM #-}
-
--- | adi is Abstracting Definitional Interpreters:
---
---     https://arxiv.org/abs/1707.04755
---
---   All ADI does is interleaves every layer of evaluation by inserting intermitten layers between them, in that way the evaluation can be extended/embelished in any way wanted. Look at its use to see great examples.
---
---   Essentially, it does for evaluation what recursion schemes do for
---   representation: allows threading layers through existing structure, only
---   in this case through behavior.
-adi
-  :: Functor f
-  => Transform f a
-  -> Alg f a
-  -> Fix f
-  -> a
-adi g f = g $ f . (adi g f <$>) . unFix
-
-
--- * Has lens
-
-class Has a b where
-  hasLens :: Lens' a b
-
-instance Has a a where
-  hasLens f = f
-
-instance Has (a, b) a where
-  hasLens = _1
-
-instance Has (a, b) b where
-  hasLens = _2
-
--- | Retrive monad state by 'Lens''.
-askLocal :: (MonadReader t m, Has t a) => m a
-askLocal = asks $ view hasLens
-
--- * Other
-
--- | > Hashmap Text -- type synonym
-type KeyMap = HashMap Text
