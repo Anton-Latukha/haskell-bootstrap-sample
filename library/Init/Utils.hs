@@ -1,8 +1,7 @@
 {-# language CPP #-}
 
 -- | This is a module of custom "Prelude" code.
--- It is for import for projects other then @HNix@.
--- For @HNix@ - this module gets reexported by "Prelude", so for @HNix@ please fix-up pass-through there.
+-- This module gets reexported by projects "Prelude".
 module Init.Utils
   ( stub
   , pass
@@ -18,7 +17,7 @@ module Init.Utils
   , whenJust
   , isPresent
   , handlePresence
-  , whenText
+  , handleTextPresence
 
   , Path(..)
   , isAbsolute
@@ -34,7 +33,6 @@ module Init.Utils
   , dropExtensions
   , replaceExtension
   , readFile
-
 #if ENABLE_TRACING
   , module X
 #else
@@ -159,8 +157,8 @@ whenJust =
     mempty
 {-# inline whenJust #-}
 
-isPresent :: Foldable t => t a -> Bool
-isPresent = not . null
+isInhabited :: Foldable t => t a -> Bool
+isInhabited = not . null
 {-# inline isPresent #-}
 
 
@@ -173,9 +171,9 @@ handlePresence d f t =
     (isPresent t)
 {-# inline handlePresence #-}
 
-whenText
+handleTextPresence
   :: a -> (Text -> a) -> Text -> a
-whenText e f t =
+handleTextPresence e f t =
   bool
     e
     (f t)
