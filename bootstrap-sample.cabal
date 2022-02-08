@@ -65,6 +65,7 @@ common shared
       -fspecialise-aggressively
 
 library
+  import: shared
   hs-source-dirs:
     library
   exposed-modules:
@@ -72,11 +73,13 @@ library
     Init.Utils
 
 executable bootstrap-sample
+  import: shared
   hs-source-dirs:
     executable
   main-is: Main.hs
 
 test-suite bootstrap-sample-tests
+  import: shared
   type: exitcode-stdio-1.0
   hs-source-dirs:
     test-suite
@@ -87,6 +90,7 @@ test-suite bootstrap-sample-tests
       tasty
 
 benchmark bootstrap-sample-benchmarks
+  import: shared
   type: exitcode-stdio-1.0
   hs-source-dirs:
     benchmark
