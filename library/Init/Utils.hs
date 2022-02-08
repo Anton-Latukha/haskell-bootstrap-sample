@@ -54,7 +54,6 @@ import           Relude                  hiding ( pass
 import           Data.Data                      ( Data )
 import qualified Data.Text                     as Text
 import qualified System.FilePath               as FilePath
-import           Control.Monad.List             ( foldM )
 
 #if ENABLE_TRACING
 import qualified Relude.Debug                 as X
@@ -110,7 +109,7 @@ nestM
   -> m a -- ^ & join layers of 'm'
 nestM 0 _ x = pure x
 nestM n f x =
-  foldM (const . f) x $ replicate @() n mempty
+  foldlM (const . f) x $ replicate @() n mempty
 {-# inline nestM #-}
 
 -- | In `foldr` order apply functions.

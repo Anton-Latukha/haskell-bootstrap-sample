@@ -54,7 +54,6 @@ common shared
   build-depends:
       base >= 4.12 && < 4.17
     , relude >= 1.0.0 && < 1.1.0
-    , mtl >= 2.2.2 && < 2.3
   ghc-options:
     -Wall
     -fprint-potential-instances
