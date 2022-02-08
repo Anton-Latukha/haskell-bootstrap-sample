@@ -15,7 +15,7 @@ module Init.Utils
   , whenTrue
   , whenFalse
   , whenJust
-  , isPresent
+  , isInhabited
   , handlePresence
   , handleTextPresence
 
@@ -159,7 +159,7 @@ whenJust =
 
 isInhabited :: Foldable t => t a -> Bool
 isInhabited = not . null
-{-# inline isPresent #-}
+{-# inline isInhabited #-}
 
 
 -- | 'maybe'-like eliminator, for foldable empty/inhabited structures.
@@ -168,7 +168,7 @@ handlePresence d f t =
   bool
     d
     (f t)
-    (isPresent t)
+    (isInhabited t)
 {-# inline handlePresence #-}
 
 handleTextPresence

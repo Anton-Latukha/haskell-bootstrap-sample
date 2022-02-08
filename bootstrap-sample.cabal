@@ -91,7 +91,8 @@ test-suite bootstrap-sample-tests
   other-modules:
     TestCommon
   build-depends:
-      tasty
+      bootstrap-sample
+    , tasty
 
 benchmark bootstrap-sample-benchmarks
   import: shared
@@ -101,3 +102,6 @@ benchmark bootstrap-sample-benchmarks
   main-is: Main.hs
   other-modules:
     ParserBench
+  build-depends:
+      bootstrap-sample
+    , tasty-bench
